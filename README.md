@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>نيابة غرب الأمانة - تطبيق</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* خطوط وخلفية */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700&display=swap');
+:root{
+  --primary:#003366;
+  --accent1:#00aaff;
+  --accent2:#00ffaa;
+  --glass: rgba(255,255,255,0.85);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Cairo",sans-serif;
+  background: linear-gradient(135deg,#003366,#0055aa);
+  color:#0b2740;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- Splash / Welcome ---------- */
+#welcome {
+  position:fixed; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background: linear-gradient(135deg,#004080,#0080ff);
+  z-index:9999;
+  text-align:center;
+  padding:20px;
+}
+#welcome #logoPreview{
+  width:160px;height:160px;object-fit:contain;border-radius:20px;
+  background:linear-gradient(180deg,#ffffff,#e6f2ff);
+  box-shadow:0 12px 40px rgba(0,0,0,0.3);
+  transform-origin:center;
+  animation:logoEntrance 4s ease forwards;
+}
+@keyframes logoEntrance{
+  0%{transform:translateY(-200px) scale(0);opacity:0}
+  60%{transform:translateY(10px) scale(1.15);opacity:1}
+  100%{transform:translateY(0) scale(1)}
+}
+#welcome h1{color:white;margin:14px 0 4px 0;font-size:28px;text-shadow:0 2px 8px rgba(0,0,0,0.3)}
+#welcome h2{color:#f0f8ff;margin:0 0 8px 0;font-size:18px}
+#welcome .upload-label{margin-top:12px;color:#fff;font-size:14px}
+#welcome input[type="file"]{display:block;margin-top:8px}
+
+/* slow small marquee */
+#welcome .marquee-small{
+  position:absolute; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.28);
+  padding:8px 12px;
+  overflow:hidden; white-space:nowrap;
+}
+#welcome .marquee-small p{
+  display:inline-block; padding-left:100%;
+  animation:marqSlow 24s linear infinite;
+  color:#fff;font-weight:600;font-size:14px;
+}
+@keyframes marqSlow{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+/* ---------- Header, Icons, Marquee ---------- */
+header{display:none; /* appear after splash */ background:var(--primary); color:white; padding:14px 12px; text-align:center; position:relative; box-shadow:0 8px 24px rgba(0,0,0,0.25)}
+header h1{margin:0;font-size:20px}
+.app-container{max-width:1100px;margin:18px auto;padding:0 12px}
+
+/* icons bar */
+.icon-bar{
+  display:flex; flex-wrap:wrap; gap:18px; justify-content:center; margin:26px 0;
+}
+.icon{
+  width:110px;height:110px;border-radius:18px;background:var(--primary);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;
+  box-shadow:0 10px 28px rgba(0,0,0,0.25);
+  cursor:pointer; transition:transform .35s ease, box-shadow .35s, background .6s;
+  transform-origin:center;
+  perspective:1000px;
+  opacity:0; /* will animate in */
+}
+.icon i{font-size:30px}
+.icon span{margin-top:8px; font-size:14px; display:block}
+.icon:hover{transform:translateY(-6px) scale(1.02); background:linear-gradient(45deg,var(--accent1),var(--accent2)); box-shadow:0 14px 40px rgba(0,170,255,0.18)}
+
+/* falling animation delays applied in JS to each icon */
+@keyframes fallIn{0%{opacity:0; transform:translateY(-80px) scale(.6)}100%{opacity:1; transform:translateY(0) scale(1)}}
+
+/* marquee bottom */
+.site-marquee{position:fixed;left:0;right:0;bottom:0;background:var(--primary);color:#fff;padding:8px 12px;font-weight:700;overflow:hidden}
+.site-marquee p{display:inline-block;padding-left:100%;animation:marqVerySlow 80s linear infinite}
+@keyframes marqVerySlow{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+/* ---------- Modals (circular -> full screen) ---------- */
+.modal{
+  display:none; position:fixed; inset:0; justify-content:center; align-items:center;
+  background:rgba(0,0,0,0.7); z-index:9998; overflow:auto;
+}
+.modal .modal-card{
+  width:94%; max-width:920px; background:var(--glass); border-radius:16px; padding:18px; position:relative;
+  box-shadow:0 30px 80px rgba(2,12,40,0.6);
+  transform-origin:center center;
+  animation:cardShow .45s ease both;
+}
+@keyframes cardShow{0%{transform:scale(.85) translateY(20px);opacity:0}100%{transform:none;opacity:1}}
+.modal .close{position:absolute; top:10px; left:12px; background:transparent; border:none; font-size:22px; cursor:pointer}
+.modal h2{margin:0 0 8px 0; color:var(--primary)}
+
+/* forms */
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.form-grid .full{grid-column:1/-1}
+label.small{font-weight:600;color:#223}
+input[type="text"], input[type="tel"], select, textarea {
+  width:100%; padding:12px; border-radius:12px; border:1px solid #cfdce6; background:linear-gradient(145deg,#fff,#eaf6ff);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+textarea{min-height:110px;resize:vertical}
+button.btn{background:linear-gradient(90deg,var(--primary),#0066a8); color:#fff; padding:10px 14px; border-radius:12px;border:0; cursor:pointer; font-weight:700}
+button.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:10px;cursor:pointer}
+
+/* small helpers */
+.note{font-size:13px;color:#556; margin-top:6px}
+.upload-list{margin-top:8px}
+.upload-list li{margin:5px 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* manager success panel */
+.manager-panel{display:none;margin-top:12px;padding:12px;background:#f7fbff;border-radius:10px;border:1px solid #e3f0ff}
+
+/* footer */
+footer{background:var(--primary);color:#fff;text-align:center;padding:12px;margin-top:18px}
+
+/* responsiveness */
+@media(max-width:880px){.form-grid{grid-template-columns:1fr}.icon{width:92px;height:92px}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH / WELCOME -->
+<div id="welcome" aria-hidden="false">
+  <img id="logoPreview" src="" alt="شعار النيابة (اضغط لاختيار صورة)">
+  <h1>النيابة العامة</h1>
+  <h2>نيابة إستئناف شمال الأمانة</h2>
+  <h2>نيابة غرب الأمانة الإبتدائية</h2>
+
+  <label class="upload-label" for="logoUpload" style="cursor:pointer;">
+    <small style="opacity:.95">اضغط لاختيار شعار / تحميل صورة الشعار</small><br>
+    <input id="logoUpload" type="file" accept="image/*" style="margin-top:8px">
+  </label>
+
+  <div class="marquee-small" aria-hidden="true"><p>اهلاً بكم في تطبيق نيابة غرب الأمانة الإبتدائية — النيابة الأولى في مسار التحول الرقمي</p></div>
+</div>
+
+<!-- HEADER -->
+<header style="display:none">
+  <div class="app-container"><h1>نيابة غرب الأمانة الإبتدائية</h1></div>
+</header>
+
+<div class="app-container">
+
+  <!-- ICON BAR -->
+  <div class="icon-bar" id="iconBar">
+    <a class="icon" id="iconComplaint" data-modal="modalComplaint"><i class="fas fa-file-alt"></i><span>الشكوى</span></a>
+    <a class="icon" id="iconRequest" data-modal="modalRequest"><i class="fas fa-gavel"></i><span>الطلبات</span></a>
+    <a class="icon" id="iconInquiry" data-modal="modalInquiry"><i class="fab fa-whatsapp"></i><span>استعلام</span></a>
+    <a class="icon" id="iconAddress" data-modal="modalAddress"><i class="fas fa-map-marker-alt"></i><span>تحديد الموطن</span></a>
+    <a class="icon" id="iconManagers" data-modal="modalManagers"><i class="fas fa-user-shield"></i><span>مدراء الأقسام</span></a>
+    <a class="icon" id="iconHours" data-modal="modalHours"><i class="far fa-clock"></i><span>أوقات الدوام</span></a>
+    <a class="icon" id="iconForms" data-modal="modalForms"><i class="fas fa-file-download"></i><span>النماذج</span></a>
+    <a class="icon" id="iconNews" href="#" data-href="https://www.facebook.com/share/1Jg8CfRyfT/" target="_blank"><i class="fab fa-facebook-f"></i><span>أخبار النيابة</span></a>
+    <a class="icon" id="iconQR" data-modal="modalQR"><i class="fas fa-qrcode"></i><span>الباركود</span></a>
+    <a class="icon" id="iconAbout" data-modal="modalAbout"><i class="fas fa-info-circle"></i><span>عن التطبيق</span></a>
+  </div>
+
+  <!-- small instruction -->
+  <p style="text-align:center;color:#f0f9ff;font-weight:600;margin-top:6px">اضغط على أي أيقونة لفتح النموذج أو القسم</p>
+</div>
+
+<!-- SITE MARQUEE -->
+<div class="site-marquee" aria-hidden="true">
+  <p>مرحباً بك في تطبيق نيابة غرب الأمانة الإبتدائية — الرجاء تعبئة الحقول بدقة ورفع المستندات المطلوبة.</p>
+</div>
+
+<style>
+.site-marquee {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #003366;  /* لون الشريط */
+  color: #fff;
+  padding: 8px 12px;
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.site-marquee p {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marqueeLinear 20s linear infinite;
+  margin: 0;
+}
+
+@keyframes marqueeLinear {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+</style>
+<!-- ========== MODALS ========== -->
+
+<!-- COMPLAINT -->
+<div class="modal" id="modalComplaint" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>إرسال شكوى مباشرة</h2>
+    <form id="formComplaint">
+      <div class="form-grid">
+        <input type="text" name="firstName" placeholder="الاسم الأول" required>
+        <input type="text" name="fatherName" placeholder="اسم الأب" required>
+        <input type="text" name="grandName" placeholder="اسم الجد" required>
+        <input type="text" name="fourthName" placeholder="الاسم الرابع (اختياري)">
+        <input type="text" name="familyName" placeholder="اللقب" required>
+        <input type="tel" name="phone" placeholder="رقم الهاتف" required>
+        <input type="text" name="nationalId" placeholder="رقم الهوية الشخصية" required>
+        <select name="docType" required>
+          <option value="">نوع الوثيقة</option>
+          <option value="بطاقة شخصية">بطاقة شخصية</option>
+          <option value="جواز سفر">جواز سفر</option>
+          <option value="دفتر عائلي">دفتر عائلي</option>
+        </select>
+
+        <!-- Address chained -->
+        <select name="province" class="province" required>
+          <option value="">المحافظة</option>
+          <option>صنعاء</option>
+        </select>
+        <select name="district" class="district" required>
+          <option value="">المديرية</option>
+        </select>
+        <input type="text" name="neighborhood" placeholder="الحي" required>
+        <input type="text" name="detailedAddress" placeholder="العنوان التفصيلي (اختياري)">
+
+        <div class="full">
+          <label class="small">إرفاق مستندات (PDF/PNG/JPG) — يمكنك رفع أكثر من ملف</label>
+          <input type="file" name="attachments" id="complaintFiles" accept=".pdf,.png,.jpg,.jpeg" multiple required>
+          <ul id="complaintFilesList" class="upload-list"></ul>
+        </div>
+
+        <div class="full">
+          <button type="button" class="ghost" id="btnConditions">قراءة شروط الشكوى</button>
+          <button type="submit" class="btn">إرسال الشكوى</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- REQUESTS -->
+<div class="modal" id="modalRequest" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>الطلبات القضائية</h2>
+    <form id="formRequest">
+      <div class="form-grid">
+        <select name="requestType" required>
+          <option value="">نوع الطلب</option>
+          <option>طلب تسليم المضبوطات</option>
+          <option>طلب كف خطاب</option>
+          <option>طلب صورة من قرار النيابة</option>
+          <option>طلب الإفراج</option>
+          <option>طلب آخر</option>
+        </select>
+        <input type="text" name="reqName" placeholder="الاسم الكامل" required>
+        <input type="tel" name="reqPhone" placeholder="رقم الهاتف" required>
+
+        <select name="reqProvince" class="province" required>
+          <option value="">المحافظة</option>
+          <option>صنعاء</option>
+        </select>
+        <select name="reqDistrict" class="district" required>
+          <option value="">المديرية</option>
+        </select>
+        <input type="text" name="reqNeighborhood" placeholder="الحي" required>
+
+        <div class="full">
+          <label class="small">إرفاق المستندات (PDF/PNG/JPG)</label>
+          <input type="file" name="reqFiles" id="requestFiles" accept=".pdf,.png,.jpg,.jpeg" multiple required>
+          <ul id="requestFilesList" class="upload-list"></ul>
+        </div>
+
+        <div class="full">
+          <button type="submit" class="btn">إرسال الطلب</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- INQUIRY (WhatsApp) -->
+<div class="modal" id="modalInquiry" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>الاستعلام عبر واتساب</h2>
+    <form id="formInquiry">
+      <div class="form-grid">
+        <select name="inqType" required>
+          <option value="">نوع الاستعلام</option>
+          <option value="قضية">طلب استعلام عن قضية</option>
+          <option value="حركة الملف">طلب استعلام عن حركة الملف</option>
+        </select>
+        <input type="text" name="inqName" placeholder="الاسم الرباعي" required>
+        <select name="inqRole" required>
+          <option value="">اختر الصفة</option>
+          <option>شاكي</option>
+          <option>مشكوبه</option>
+          <option>وكيل</option>
+          <option>محامي</option>
+          <option>قريب</option>
+          <option>أخرى</option>
+        </select>
+        <input type="tel" name="inqPhone" placeholder="رقم الهاتف" required>
+
+        <div class="full">
+          <p class="note">سيتم فتح واتساب إلى رقم النيابة لإرسال طلب الاستعلام (الرقم مخفي داخل التطبيق).</p>
+          <button type="button" class="btn" id="sendWhatsAppBtn">إرسال إلى واتساب</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADDRESS (تحديد موطن) -->
+<div class="modal" id="modalAddress" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>تحديد موطن أطراف القضية</h2>
+    <form id="formAddress">
+      <div class="form-grid">
+        <input type="text" name="addrName" placeholder="الاسم الكامل" required>
+        <select name="addrRole" required>
+          <option value="">الصفة</option>
+          <option>شاكي</option>
+          <option>مشكوبه</option>
+          <option>وكيل</option>
+          <option>محامي</option>
+          <option>قريب</option>
+        </select>
+        <select name="addrProvince" class="province" required>
+          <option value="">المحافظة</option>
+          <option>صنعاء</option>
+        </select>
+        <select name="addrDistrict" class="district" required>
+          <option value="">المديرية</option>
+        </select>
+        <input type="text" name="addrNeighborhood" placeholder="الحي" required>
+
+        <div class="full">
+          <label class="small">إرفاق مستندات</label>
+          <input type="file" name="addrFiles" accept=".pdf,.png,.jpg,.jpeg" multiple required>
+          <button type="submit" class="btn">إرسال النموذج</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MANAGERS -->
+<div class="modal" id="modalManagers" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>دخول مدراء الأقسام</h2>
+    <form id="formManagers">
+      <div class="form-grid">
+        <select id="managerSelect" required>
+          <option value="">اختر القسم</option>
+          <option>شرطة المعلمي</option>
+          <option>شرطة مذبح</option>
+          <option>شرطة العلفي</option>
+          <option>شرطة الحميري</option>
+          <option>شرطة السنينة</option>
+          <option>شرطة 14 اكتوبر</option>
+          <option>شرطة 22 مايو</option>
+          <option>منطقة امن شملان</option>
+        </select>
+        <input id="managerCode" type="password" placeholder="أدخل الرمز السري" required>
+        <div class="full">
+          <button type="submit" class="btn">دخول</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="manager-panel" id="managerPanel">
+      <h3>بيانات القسم</h3>
+      <p id="managerInfo"></p>
+      <label>إرفاق ملفات للقسم</label>
+      <input type="file" id="managerFiles" multiple accept=".pdf,.png,.jpg,.jpeg">
+      <textarea id="managerNotes" placeholder="ملاحظات القسم"></textarea>
+      <button id="saveManagerData" class="btn">حفظ البيانات</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOURS -->
+<div class="modal" id="modalHours" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>أوقات الدوام الرسمي</h2>
+    <p>من السبت إلى الأربعاء: ٩:٠٠ صباحًا – ٢:٠٠ ظهرًا</p>
+    <p class="note">في أيام العطل الرسمية يتم الإعلان عن مواعيد الدوام عبر صفحة الفيسبوك الرسمية.</p>
+  </div>
+</div>
+
+<!-- FORMS DOWNLOADS -->
+<div class="modal" id="modalForms" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>تحميل / رفع النماذج القضائية</h2>
+
+    <label class="small">رفع نماذج (يمكنك رفع أكثر من ملف وسيظهر للجميع للتحميل محليًا)</label>
+    <input type="file" id="templatesUpload" accept=".pdf,.doc,.docx,.zip" multiple>
+    <ul id="templatesList" class="upload-list"></ul>
+    <p class="note">ملفات الرفع تُحفظ في ذاكرة المتصفح المؤقتة (ستعمل محليًا فقط). يمكن تنزيل كل ملف بواسطة زر التنزيل بجواره.</p>
+  </div>
+</div>
+
+<!-- FACEBOOK / NEWS -->
+<div class="modal" id="modalNews" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>متابعة الأخبار القضائية على فيسبوك</h2>
+    <p>يمكنك زيارة صفحة النيابة على فيسبوك لآخر الأخبار:</p>
+    <p><a href="https://www.facebook.com/share/1Jg8CfRyfT/" target="_blank" class="btn">فتح صفحة الفيسبوك</a></p>
+  </div>
+</div>
+
+<!-- QR / BARCODE -->
+<div class="modal" id="modalQR" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>رمز الوصول السريع (QR)</h2>
+    <p>امسح هذا الرمز لفتح التطبيق / الصفحة الحالية:</p>
+    <div style="text-align:center;margin:12px 0;">
+      <img id="qrImage" src="" alt="QR" style="width:220px;height:220px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.25)">
+      <div style="margin-top:10px"><a id="downloadQR" class="btn" href="#" download="niaba_qr.png">تحميل رمز QR</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="modal" id="modalAbout" aria-hidden="true">
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h2>عن التطبيق</h2>
+    <p>هذا تطبيق توضيحي لإدارة استلام الشكاوى والطلبات وخدمات الاستعلام في نيابة غرب الأمانة الإبتدائية.</p>
+    <p><strong>جميع الحقوق محفوظة &copy; 2025</strong></p>
+    <p>تنفيذ، تصميم وإخراج: م. أحمد السريحي</p>
+  </div>
+</div>
+
+<footer>جميع الحقوق محفوظة &copy; 2025 — تنفيذ وتصميم وإخراج م. أحمد السريحي</footer>
+
+<script>
+/* ---------- Data & helpers ---------- */
+const whatsappNumber = "967782776779"; // رقم النيابة (مخفي عن المستخدم في الحقول)
+const districts = {
+  "صنعاء": ["معين","أزال","الوحدة","السبعين","أرحب","همدان","خولان","بني مطر","حراز","سنحان","بلاد الروس","بلاد الطعام","نهم","بني حشيش","الروضة","دار سلم","حزيز","ارتل","الصافية","الزهراوي","نقم"]
+};
+
+/* ---------- Splash / Logo upload ---------- */
+const welcome = document.getElementById('welcome');
+const logoUpload = document.getElementById('logoUpload');
+const logoPreview = document.getElementById('logoPreview');
+
+logoUpload.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => logoPreview.src = ev.target.result;
+  reader.readAsDataURL(f);
+});
+
+// Hide splash after 5 seconds
+setTimeout(()=> {
+  welcome.style.display='none';
+  document.querySelector('header').style.display='block';
+  // animate icons into place
+  document.querySelectorAll('.icon').forEach((ic, idx) => {
+    ic.style.animation = `fallIn .6s ease ${0.12*idx}s both`;
+    ic.style.opacity = 1;
+  });
+}, 5000);
+
+/* ---------- Modal open/close ---------- */
+document.querySelectorAll('[data-modal]').forEach(el=>{
+  el.addEventListener('click', e=>{
+    e.preventDefault();
+    const id = el.getAttribute('data-modal');
+    const modal = document.getElementById(id);
+    if(modal){
+      modal.style.display='flex';
+      setTimeout(()=> modal.classList.add('show'), 30);
+      // if opening QR, generate it
+      if(id === 'modalQR') generateQR();
+    } else {
+      // special-case iconNews open external page
+      const href = el.getAttribute('data-href') || el.href;
+      if(href) window.open(href, '_blank');
+    }
+  });
+});
+document.querySelectorAll('[data-close]').forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    const modal = btn.closest('.modal');
+    if(!modal) return;
+    modal.classList.remove('show');
+    setTimeout(()=> modal.style.display='none', 400);
+  });
+});
+
+/* ---------- Fill district selects dynamically ---------- */
+function fillDistricts(selectProvinceEl, selectDistrictEl){
+  const prov = selectProvinceEl.value;
+  selectDistrictEl.innerHTML = '<option value="">المديرية</option>';
+  const arr = districts[prov] || [];
+  arr.forEach(d => {
+    const op = document.createElement('option'); op.value = d; op.textContent = d;
+    selectDistrictEl.appendChild(op);
+  });
+}
+// attach to all province selects
+document.querySelectorAll('select.province').forEach(p=>{
+  p.addEventListener('change', function(){
+    // find the paired district within same form/container
+    const form = this.closest('form');
+    if(!form) return;
+    const district = form.querySelector('select.district');
+    if(district) fillDistricts(this, district);
+  });
+});
+
+// For single selects with name/province classes:
+document.querySelectorAll('select[name="province"], select[name="reqProvince"], select[name="addrProvince"]').forEach(p=>{
+  p.addEventListener('change', function(){
+    // attempt to find sibling district
+    const form = this.closest('form');
+    const d = form ? form.querySelector('select[class*="district"], select[name*="District"], select[name*="district"]') : null;
+    if(d) fillDistricts(this, d);
+  });
+});
+
+/* ---------- Complaint form handling ---------- */
+const formComplaint = document.getElementById('formComplaint');
+const complaintFilesList = document.getElementById('complaintFilesList');
+document.getElementById('complaintFiles').addEventListener('change', e=>{
+  complaintFilesList.innerHTML='';
+  Array.from(e.target.files).forEach(f=>{
+    const li=document.createElement('li');
+    li.textContent = f.name + ' ('+ Math.round(f.size/1024) + ' KB)';
+    complaintFilesList.appendChild(li);
+  });
+});
+document.getElementById('btnConditions').addEventListener('click', ()=>{
+  alert("شروط الشكوى:\n1. أن تكون المعلومات صحيحة.\n2. لا تقل عن 10 كلمات.\n3. إرفاق المستندات اللازمة.\n4. تحديد الأطراف بدقة.\n5. كتابة العنوان بالتفصيل.\n6. إدخال رقم الهاتف الصحيح.\n7. اختيار نوع الوثيقة.\n8. الالتزام بالأسلوب القانوني.\n9. عدم التعدي على حقوق الآخرين.\n10. توقيع الشكوى.");
+});
+formComplaint.addEventListener('submit', e=>{
+  e.preventDefault();
+  // simulate submit
+  alert('تم إرسال الشكوى بنجاح. سيتم التواصل معكم عبر الهاتف.');
+  formComplaint.reset();
+  complaintFilesList.innerHTML='';
+  // close modal
+  document.getElementById('modalComplaint').classList.remove('show');
+  setTimeout(()=> document.getElementById('modalComplaint').style.display='none',400);
+});
+
+/* ---------- Request form handling ---------- */
+const formRequest = document.getElementById('formRequest');
+const requestFilesList = document.getElementById('requestFilesList');
+document.getElementById('requestFiles').addEventListener('change', e=>{
+  requestFilesList.innerHTML='';
+  Array.from(e.target.files).forEach(f=>{
+    const li=document.createElement('li');
+    li.textContent = f.name + ' ('+ Math.round(f.size/1024) + ' KB)';
+    requestFilesList.appendChild(li);
+  });
+});
+formRequest.addEventListener('submit', e=>{
+  e.preventDefault();
+  alert('تم إرسال الطلب القضائي بنجاح.');
+  formRequest.reset();
+  requestFilesList.innerHTML='';
+  document.getElementById('modalRequest').classList.remove('show');
+  setTimeout(()=> document.getElementById('modalRequest').style.display='none',400);
+});
+
+/* ---------- Inquiry via WhatsApp ---------- */
+const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
+sendWhatsAppBtn.addEventListener('click', ()=>{
+  const form = document.getElementById('formInquiry');
+  const type = form.inqType.value || 'استعلام';
+  const name = form.inqName.value || 'غير محدد';
+  const role = form.inqRole.value || 'غير محدد';
+  const phone = form.inqPhone.value || 'غير محدد';
+  if(!form.inqType.value || !form.inqName.value || !form.inqRole.value || !form.inqPhone.value){
+    alert('الرجاء تعبئة جميع حقول الاستعلام قبل الإرسال.');
+    return;
+  }
+  const message = `طلب استعلام:\nالنوع: ${type}\nالاسم: ${name}\nالصفة: ${role}\nرقم الهاتف: ${phone}`;
+  const url = `https://wa.me/${whatsappNumber}?text=` + encodeURIComponent(message);
+  window.open(url, '_blank');
+});
+
+/* ---------- Managers auth ---------- */
+const managerPasswords = {
+  "شرطة المعلمي":"adm001",
+  "شرطة مذبح":"adm002",
+  "شرطة العلفي":"adm003",
+  "شرطة الحميري":"adm004",
+  "شرطة السنينة":"adm005",
+  "شرطة 14 اكتوبر":"adm006",
+  "شرطة 22 مايو":"adm007",
+  "منطقة امن شملان":"adm008"
+};
+document.getElementById('formManagers').addEventListener('submit', e=>{
+  e.preventDefault();
+  const sel = document.getElementById('managerSelect').value;
+  const code = document.getElementById('managerCode').value.trim();
+  if(!sel || !code){ alert('الرجاء اختيار القسم وإدخال الرمز'); return; }
+  if(managerPasswords[sel] && managerPasswords[sel] === code){
+    // show manager panel
+    document.getElementById('managerInfo').textContent = 'تم الدخول لــ '+sel;
+    document.getElementById('managerPanel').style.display='block';
+    alert('تم الدخول بنجاح إلى '+sel);
+  } else {
+    alert('رمز خاطئ!');
+  }
+});
+
+/* ---------- Templates upload / download (local) ---------- */
+const templatesUpload = document.getElementById('templatesUpload');
+const templatesList = document.getElementById('templatesList');
+const uploadedTemplates = []; // {name,url}
+
+if(templatesUpload){
+  templatesUpload.addEventListener('change', e=>{
+    Array.from(e.target.files).forEach(f=>{
+      const url = URL.createObjectURL(f);
+      uploadedTemplates.push({name:f.name,url});
+      renderTemplates();
+    });
+    templatesUpload.value='';
+  });
+}
+function renderTemplates(){
+  templatesList.innerHTML='';
+  uploadedTemplates.forEach((t, i)=>{
+    const li = document.createElement('li');
+    const a = document.createElement('a'); a.href=t.url; a.download=t.name; a.textContent='تحميل';
+    const span = document.createElement('span'); span.textContent = t.name;
+    const del = document.createElement('button'); del.textContent='حذف'; del.className='ghost';
+    del.addEventListener('click', ()=>{ URL.revokeObjectURL(t.url); uploadedTemplates.splice(i,1); renderTemplates(); });
+    li.appendChild(span); li.appendChild(a); li.appendChild(del);
+    templatesList.appendChild(li);
+  });
+}
+
+/* ---------- QR generation ---------- */
+function generateQR(){
+  const img = document.getElementById('qrImage');
+  const url = window.location.href;
+  // use public QR generator service
+  const qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(url);
+  img.src = qrSrc;
+  // set download link
+  const dl = document.getElementById('downloadQR');
+  dl.href = qrSrc;
+}
+
+/* ---------- small: files in forms for local preview (templates already handled) ---------- */
+document.querySelectorAll('input[type="file"]').forEach(inp=>{
+  // already handled particular ones above
+});
+
+/* ---------- close modals on ESC ---------- */
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal.show').forEach(m=>{
+      m.classList.remove('show');
+      setTimeout(()=>m.style.display='none',400);
+    });
+  }
+});
+
+/* ---------- open facebook icon linking direct ---------- */
+document.querySelectorAll('.icon')[0]; // no-op to avoid linter issues
+
+// Attach click for the News icon to open FB directly (if user clicked the icon with data-href)
+document.querySelectorAll('.icon').forEach(ic=>{
+  const fbHref = ic.getAttribute('data-href');
+  if(fbHref){
+    ic.addEventListener('click', e=>{
+      e.preventDefault(); window.open(fbHref,'_blank');
+    });
+  }
+});
+
+/* ---------- Extra: handle "تحميل نماذج" modal elements if present before creation ---------- */
+const tplUploadElem = document.getElementById('templatesUpload');
+if(tplUploadElem){
+  tplUploadElem.addEventListener('change', e=>{
+    Array.from(e.target.files).forEach(f=>{
+      const obj = {name:f.name, url:URL.createObjectURL(f)};
+      uploadedTemplates.push(obj);
+    });
+    renderTemplates();
+    tplUploadElem.value='';
+  });
+}
+
+/* ---------- Small UX: clicking logoPreview open file chooser ---------- */
+logoPreview.addEventListener('click', ()=> logoUpload.click());
+logoPreview.style.cursor='pointer';
+
+/* ---------- Manager save button (example local save) ---------- */
+const saveManagerData = document.getElementById('saveManagerData');
+if(saveManagerData){
+  saveManagerData.addEventListener('click', ()=>{
+    alert('تم حفظ بيانات القسم (محليًا على الجهاز)');
+    document.getElementById('managerPanel').style.display='none';
+    document.getElementById('modalManagers').classList.remove('show');
+    setTimeout(()=>document.getElementById('modalManagers').style.display='none',400);
+  });
+}
+
+/* ---------- clicking the Facebook icon in icon-bar: open link (some browsers) ---------- */
+document.querySelectorAll('.icon-bar .icon').forEach(ic=>{
+  if(ic.querySelector('i.fab.fa-facebook-f') || ic.querySelector('i.fab.fa-facebook')){
+    ic.addEventListener('click', e=>{
+      e.preventDefault();
+      window.open('https://www.facebook.com/share/1Jg8CfRyfT/','_blank');
+    });
+  }
+});
+
+/* ---------- Ensure that clicking icons that have data-modal but no such modal opens external fallback (already handled) ---------- */
+</script>
+</body>
+</html>
